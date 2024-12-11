@@ -1,0 +1,94 @@
+#from textblob import TextBlob
+
+
+from googlesearch import search
+from collections import defaultdict
+import urllib.request
+from bs4 import BeautifulSoup
+movie = input("enter movie name")
+query = movie+'user review'
+print(query)
+r=""
+
+for j in search(query, tld="co.in", num=40, stop=2, pause=2):
+    print(j)
+    r=j
+    
+response = urllib.request.urlopen(r)
+html = response.read()
+soup = BeautifulSoup(html)
+
+text = soup.get_text()
+print(text)
+
+#Movie Sentiment Analysis:--
+import re
+from afinn import Afinn
+from googlesearch import search
+from collections import defaultdict
+import urllib.request
+from bs4 import BeautifulSoup
+movie = input("enter movie name")
+query = movie+'user review'
+print(query)
+r=""
+
+for j in search(query, tld="co.in", num=40, stop=2, pause=2):
+    print(j)
+    r=j
+    
+response = urllib.request.urlopen(r)
+html = response.read()
+soup = BeautifulSoup(html)
+
+text = soup.get_text()
+print(text)
+
+import pandas as pd
+def get_imdb_reviews(text):
+    reviews = []
+    for review_div in soup.find_all('div', class_='text show-more__control'):
+        reviews.append(review_div.get_text())
+    return reviews
+reviews = get_imdb_reviews(movie)
+df = pd.DataFrame({'Review': reviews})
+df
+
+def cleanTxt(text):
+    text = re.sub('@[A-Za-z0-9]+', '', text)
+    text = re.sub('#', '', text)
+    text = re.sub('RT[\s]+', '', text)
+    text = re.sub('https?:\/\/\S+', '', text)
+    return text
+
+df['Review'] = df["Review"].apply(cleanTxt)
+
+print(df)
+positive = []
+negative = []
+neutral = []
+
+afinn = Afinn()
+
+for review in df['Review']:
+    if afinn.score(review) > 0:
+        positive.append(review)
+    elif afinn.score(review) < 0:
+        negative.append(review)
+    elif afinn.score(review) == 0:
+        neutral.append(review)
+
+print("Positive Reviews:",positive)
+print('\t\n')
+print("\nNegative Reviews:",negative)
+print('\t\n')
+print("\nNeutral Reviews:",neutral)
+print('\t\n')
+
+total_reviews = len(df["Review"])
+print("Total no. of reviews:", total_reviews)
+print("No. of positive reviews:", len(positive))
+print("No. of negative reviews:", len(negative))
+print("No. of neutral reviews:", len(neutral))
+
+
